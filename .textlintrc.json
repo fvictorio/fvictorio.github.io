@@ -1,0 +1,9 @@
+{
+    "plugins": {},
+    "filters": {},
+    "rules": {
+        "apostrophe": true,
+        "quotes": true,
+        "no-zero-width-spaces": true
+    }
+}
