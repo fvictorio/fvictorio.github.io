@@ -59,3 +59,8 @@ url = "https://github.com/fvictorio"
 icon = "twitter"
 name = "Twitter"
 url = "https://twitter.com/fvictorio_nan/"
+
+[[extra.social]]
+icon = "book"
+name = "Goodreads"
+url = "https://www.goodreads.com/user/show/66213753-franco-victorio"
