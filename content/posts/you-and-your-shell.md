@@ -112,7 +112,7 @@ What we need here is some more of that sweet _interpretation_.
 
 ## Parsing arguments
 
-Let's update our shell to interpret whitespace as a separator betwen the name of the program and the arguments:
+Let's update our shell to interpret whitespace as a separator between the name of the program and the arguments:
 
 ```typescript
 while (true) {
@@ -418,7 +418,7 @@ There are a lot of simplifications in this article. Some of them are there to ma
 
 [The UNIX Programming Environment](https://en.wikipedia.org/wiki/The_Unix_Programming_Environment) is a classic. It's a bit dated, but it's a great read anyway.
 
-[Advanded Programming in the UNIX Environment](https://en.wikipedia.org/wiki/Advanced_Programming_in_the_Unix_Environment) is a more modern and technical book. I haven't read it cover to cover, not even 10% of it, but it's great as a reference.
+[Advanced Programming in the UNIX Environment](https://en.wikipedia.org/wiki/Advanced_Programming_in_the_Unix_Environment) is a more modern and technical book. I haven't read it cover to cover, not even 10% of it, but it's great as a reference.
 
 # Footnotes
 
