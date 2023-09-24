@@ -272,7 +272,7 @@ Ok, now for the fun part. Let's use what we learned to explore some interesting 
 
 ## Example 1: The `--` separator
 
-Let's start with an easy one. Sometimes you include a command as part of the arguments to another command. For example, let's say you are working on a Rust command line program which accepts some flags. You add support for a new `--foo` flag and you want to try it out. If you do this:
+Let's start with an easy one. Sometimes you include a command as part of the arguments to another command. For example, let's say you are working on a Rust command line program which accepts some flags. You added support for a new `--foo` flag and you want to try it out. If you do this:
 
 ```
 $ cargo run --foo
