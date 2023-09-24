@@ -2,8 +2,6 @@
 title = "You and Your Shell"
 date = 2023-09-24
 description = "What is a shell? Baby don't glob me."
-
-draft = true
 +++
 
 This article is my attempt to explain what is a shell and what it does. My goal is for you to build a useful mental model of what's going on under the hood when you open a terminal, paste some command, and hope that it doesn't erase all your terrible, embarrasing, hidden sci-fi poems.
