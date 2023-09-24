@@ -32,7 +32,7 @@ Let's explore this definition in more detail.
 
 ## Running programs
 
-The first thing we need to understand is that a program is always started from another program.[^1] And who started that other program, you might ask? Well, of course: a third program. And who started that one? Yet another program. But who...? I don't know, [a turtle or something](https://en.wikipedia.org/wiki/Init).
+The first thing we need to understand is that a program is always started from another program.[^1] Who started that other program, you might ask? Well, of course: a third program. And who started that one? Yet another program. But who...? I don't know, [a turtle or something](https://en.wikipedia.org/wiki/Init).
 
 The details of what exactly a program does to start another one are not relevant for our purposes. We can just assume that there is a function that looks like this:
 
@@ -46,7 +46,7 @@ function runProgram(
 
 This is a crude simplification, but it will do. At its core, starting a program requires its path in the filesystem and a list of arguments. We can also optionally pass a dictionary of environment variables.
 
-We can use this function and our previous definition to write a very simple and useless shell.
+With this function and our previous definition, we can try to write a very simple and useless shell.
 
 ## The worst shell in the world
 
@@ -111,7 +111,7 @@ while (true) {
 }
 ```
 
-If this program actually worked and we ran `rm Titanic.mkv` on it, it would actually delete the file. Probably. In any case, the takeaway is that we are doing a more complex interpretation of the command we receive. The command is still just a string, but we are starting to parse it in a somewhat interesting way.
+If this code actually worked and we ran `rm Titanic.mkv` on it, it would actually delete the file. Probably. In any case, the takeaway is that we are doing a more complex interpretation of the command we receive. The command is still just a string, but we are starting to parse it in a somewhat interesting way.
 
 ## Globs
 
@@ -119,7 +119,7 @@ What if you want to remove all the files that end in `.mkv` in a directory? It's
 
 If you don't like typing, then there are some ways this could be automated. Maybe you could use a version of `rm` that, instead of a list of files, receives an extension as its argument and removes all the files with that extension. Or perhaps you could have one program that writes all the files with some extension to a file, and then pass that file to another program which consumes it and removes all the files pointed by it...
 
-...or you could add a new feature to the shell. You could say that, if the shell finds something like `*.mkv`, then it will interpret it as "all the files in the current directory that end in mkv". This is called [glob expansion or globbing](https://tldp.org/LDP/abs/html/globbingref.html). [Globs](https://en.wikipedia.org/wiki/Glob_(programming)) are like regular expressions, but worse, or better; it's hard to say.
+...or you could just add a new feature to the shell. You could say that, if the shell finds something like `*.mkv`, then it will interpret it as "all the files in the current directory that end in `mkv`". This is called [glob expansion or globbing](https://tldp.org/LDP/abs/html/globbingref.html). [Globs](https://en.wikipedia.org/wiki/Glob_(programming)) are like regular expressions, but worse, or better; it's hard to say.
 
 The important part here, and probably the most important part of this article, is that **this expansion is performed by the shell!** This is quite easy to check by writing a program that just prints its arguments. With Node.js, you can do something like this:
 
@@ -129,17 +129,17 @@ const arguments = process.argv.slice(2);
 console.log(JSON.stringify(arguments));
 ```
 
-If you run `node index.js 1 2 foo`, you will get the list `["1","2","foo"]`. (Don't pay too much attention to the `.slice(2)` part, this is just to avoid printing the path to the node binary and the path to the script, which are included in the arguments list for what I'm sure are very good reasons.)
+If you run `node index.js 1 2 foo`, you will get the list `["1","2","foo"]`. (Don't pay too much attention to the `.slice(2)` part, this just avoids printing the paths to the node binary and the script, which are included in the arguments list for what I'm sure are very good reasons.)
 
 If you now create some files:
 
-```
+```txt
 $ touch a.txt b.txt c.txt
 ```
 
 And then run `node index.js *.txt`, the program will print `["a.txt","b.txt","c.txt"]`, not `["*.txt"]`.
 
-Things like `*` are called **metacharacters**. These are characters that receive a special treatment by the shell.
+Things like `*` are called **metacharacters**. These are characters that receive a special treatment by the shell. There are a lot of these, like `?`, `|`, `<` and `>`.
 
 But now you, being a smart and curious person, are wondering: "what if I actually want to pass `*.txt` as an argument to a program, for my own devious purposes?".
 
@@ -159,7 +159,7 @@ Here I'm going to quote from *The UNIX Programming Environment* again.
 
 Honestly, you should just close this tab and go read Chapter 3 from that book. It's so good.
 
-But yes: you use single or double quotes to escape metacharacters. Single quotes escape everything, double quotes allows certain expansions within them. I think a good thumb of rule is "always use single quotes unless you know what you're doing". <small>It's also good for your hands because you can type single quotes without pressing shift.</small> <small style="font-size: x-small;">There is a pun here with "rule of thumb" and "fingers" but I couldn't think of anything.</small>
+But yes: you use single or double quotes to escape metacharacters. Single quotes escape everything, double quotes allows certain expansions within them. I think a good thumb of rule is "always use single quotes unless you know what you're doing".
 
 So, going back to the question in the previous section, if you want to literally pass `*.txt` as an argument to a program, you can do:
 
@@ -232,9 +232,7 @@ export:
 
 Why do we have built-ins? Why isn't everything a program?
 
-In many cases, the reason is that the built-in does something that can't be done by a program. For example, `export` modifies the environment of the shell and `cd` changes its current directory. This is something that can't be done by a program, because a program can't make these modifications to its parent process.
-
-There are also many built-in commands that have a program equivalent, which muddies the waters a bit. For example, `echo` is a built-in command in bash, but there is also a `/usr/bin/echo` program. I'm not completely sure why this is the case, but the answer seems to be "POSIX", a topic I won't delve into, but that will hopefully be easier to understand after reading this.
+In many cases, the reason is that the built-in does something that can't be done by a program. For example, `export` modifies the environment of the shell and `cd` changes its current directory. This is something that can't be done by a program, because a program can't make these modifications to its parent process.[^2]
 
 In any case, if you want to know if a command is a built-in or not, you can use the `type` command:
 
@@ -254,46 +252,25 @@ type is a shell builtin
 
 Ok, now for the fun part. Let's use what we learned to explore some interesting examples.
 
-## Example 1: Escaped globs
+## Example 1: The `--` separator
 
-Which metacharacters are available depends on the shell you are using.[^2] Bash and zsh, for example, support the `**` metacharacter, which can be used to match all files under the current directory, even traversing directories. So if you have a directory like this:
-
-```
-$ tree
-.
-├── dir1
-│   ├── file11.txt
-│   └── file12.txt
-├── dir2
-│   ├── dir21
-│   │   └── file211.txt
-│   └── file21.txt
-├── file1.txt
-└── file2.txt
-```
-
-Then `echo *` and `echo **/*.txt` will produce different outputs:
+Let's start with an easy one. Sometimes you include a command as part of the arguments to another command. For example, let's say you are working on a Rust command line program which accepts some flags. If you want to try it out and do this:
 
 ```
-$ echo *.txt
-file1.txt file2.txt
-$ echo **/*.txt
-dir1/file11.txt dir1/file12.txt dir2/dir21/file211.txt dir2/file21.txt file1.txt file2.txt
+$ cargo run --foo
 ```
 
-This is a very common pattern to, for example, run all the tests under some directory. In the Node.js ecosystem it's normal to see an npm script like this:
+you'll get an error:
 
 ```
-"test": "mocha test/**/*.js"
+error: Found argument '--foo' which wasn't expected, or isn't valid in this context
+
+  If you tried to supply '--foo' as a value rather than a flag, use '-- --foo'
 ```
 
-But npm scripts, by default, are run using the `/bin/sh` shell, which is a link to an actual shell and whose target depends on the operating system. In Ubuntu, this corresponds to the [Dash shell](https://en.wikipedia.org/wiki/Almquist_shell#Dash), which doesn't support that kind of globbing. In this case, this means that Mocha will receive a string with `**/*.js` as its parameter.
+If we do `cargo run -- --foo`, then things work. `--` here is a special argument that tells `cargo` to interpret everything after it as positional arguments, not as flags.
 
-So, why does this work? In this instance, the reason is that the Mocha test runner accepts globs as a parameter. So doing `mocha test/**/*.js` and `mocha 'test/**/*.js'` are somewhat equivalent.
-
-Somewhat. What guarantees do we have that the glob expansion done by the shell is the same as the one done by Mocha? Absolutely none. So I think it's important to be aware of the difference here.
-
-The same example with another test runner, Jest, is even more interesting because Jest accepts regexes as parameters, not globs, and `test/**/*.js` is not a valid regex, so you get a funny error.
+What does the shell do with `--`? Hopefully the answer is obvious: nothing. This is not a metacharacter. Using `--` to separate arguments from flags is a convention used by many programs, the shell doesn't care about it.
 
 ## Example 2: Escaping quotes
 
@@ -415,19 +392,20 @@ Fun stuff.
 
 There are a lot of simplifications in this article. Some of them are there to make the explanation easier to understand, and some of them are due to my own ignorance. This is a list of the ones I'm aware of and that I think are important:
 
+- Everything here is very UNIX specific. I think the core ideas apply to non-UNIX operating systems, but many of the details are probably different.
 - I didn't mention system calls at all, even if they are relevant for a more common definition of a shell: "a shell is a program that provides an interface to the operating system". This is probably a technically better definition, but I wanted to focus on the "interprets requests to run programs" part.
-- The environment is actually a list of strings, not a dictionary. These strings, by convention, look like `key=value`.
+- The environment is actually a list of strings, not a dictionary. These strings, by convention, look like `key=value` and are interpreted as a dictionary by programs and standard libraries.
 
 # Further reading
 
 [The UNIX Programming Environment](https://en.wikipedia.org/wiki/The_Unix_Programming_Environment) is a classic. It's a bit dated, but it's a great read anyway.
 
-[Advanded Programming in the UNIX Environment](https://en.wikipedia.org/wiki/Advanced_Programming_in_the_Unix_Environment) is a more modern and technical book. I haven't read it cover to cover, not even 10% of that, but it's great as a reference.
+[Advanded Programming in the UNIX Environment](https://en.wikipedia.org/wiki/Advanced_Programming_in_the_Unix_Environment) is a more modern and technical book. I haven't read it cover to cover, not even 10% of it, but it's great as a reference.
 
 # Footnotes
 
-[^1]: I'm going to use "program" here for both "programs" and "processes". There are a million explanations out there about the difference, so I won't bother here.
+[^1]: I'm going to use "program" for both "programs" and "processes". There are a million explanations out there about the difference, so I won't bother here.
 
-[^2]: And also on the options you have enabled. For example, bash has a `globstar` option that enables the `**` metacharacter.
+[^2]: There are also many built-in commands that have a program equivalent with the same name. For example, `echo` is a built-in command in bash, but there is also a `/usr/bin/echo` program. I'm not completely sure why this is the case, but [one answer](https://stackoverflow.com/a/76727697/3055448) seems to be "POSIX", a topic I won't delve into.
 
-[^3]: I'm cheating a bit here. `[` is actually a shell built-in, but there's also a program with the same name and functionality, similar to `echo`. You can check this with `type [`.
+[^3]: I'm cheating a bit here. `[` is actually a shell built-in, but there's also a program with the same name and functionality, similar to `echo`. Check the previous footnote for an explanation.

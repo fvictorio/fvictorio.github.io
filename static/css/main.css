@@ -232,11 +232,6 @@ time {
     color: grey;
 }
 
-span {
-    color: grey;
-}
-
-
 /* Posts */
 article .title {
     margin-bottom: 1em;
@@ -407,4 +402,8 @@ table td {
     display: flex;
     align-items: center;
     grid-column-gap: 10px;
+}
+
+header nav a {
+  margin-right: 0.5em;
 }
