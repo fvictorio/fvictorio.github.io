@@ -65,3 +65,8 @@ url = "https://twitter.com/fvictorio_nan"
 icon = "book"
 name = "Goodreads"
 url = "https://goodreads.com/fvictorio"
+
+[[extra.social]]
+icon = "mail"
+name = "Email"
+url = "mailto:victorio.franco@gmail.com"
