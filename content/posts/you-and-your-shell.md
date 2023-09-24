@@ -221,7 +221,7 @@ $ node index.js
 1
 ```
 
-The difference here is that `export FOO=1` is modifying the environment of the shell, which is then passed down to our script. This is persistent: if we run `node index.js` a second time, it will print 1 again. But if we do that with the previous version (assuming a fresh shell instance), it won't:
+The difference here is that `export FOO=1` is modifying the environment of the shell, which is then passed down to our script. This is persistent: if we run `node index.js` a second time in the same shell session, it will print 1 again. But if we do that with the previous version (assuming a fresh shell instance), it won't:
 
 ```
 $ FOO=1 node index.js
@@ -272,10 +272,18 @@ Ok, now for the fun part. Let's use what we learned to explore some interesting 
 
 ## Example 1: The `--` separator
 
-Let's start with an easy one. Sometimes you include a command as part of the arguments to another command. For example, let's say you are working on a Rust command line program which accepts some flags. You added support for a new `--foo` flag and you want to try it out. If you do this:
+Let's start with an easy one. Sometimes you run a command that, in turn, runs another command. For example, let's say you are working on a Rust command line program. You can run it during development with `cargo run` and pass arguments to it.
 
 ```
-$ cargo run --foo
+cargo run someArg
+```
+
+In this case, your program will receive `someArg` as an argument.
+
+Now imagine you added support for a new `--foo` flag and you want to try it out. If you do this:
+
+```
+$ cargo run --foo someArg
 ```
 
 you'll get an error:
@@ -286,9 +294,11 @@ error: Found argument '--foo' which wasn't expected, or isn't valid in this cont
   If you tried to supply '--foo' as a value rather than a flag, use '-- --foo'
 ```
 
-If we do `cargo run -- --foo`, then things work. `--` here is a special argument that tells `cargo` to interpret everything after it as positional arguments, even if it starts with a `-`.
+What's happening here is that cargo thinks that `--foo` is a flag for `cargo run`, not for your program. A similar thing happens when you do `npm run some-script` and want to pass some arguments to the command executed by the script.
 
-What does the shell do with `--`? Hopefully the answer is obvious: nothing. This is not a metacharacter. Using `--` to separate arguments from flags is just a convention used by many programs; the shell doesn't care about it.
+In both cases, the solution is to add a `--`. If we run `cargo run -- --foo`, then it will work fine. `--` here is a special argument that changes how Cargo (or npm) interprets the rest of its arguments.
+
+What does the shell do with `--`? Hopefully the answer is obvious: nothing. This is not a metacharacter. Using `--` is just a convention used by many programs to change how they interpret their arguments; the shell doesn't care about it.
 
 ## Example 2: Escaping quotes
 
