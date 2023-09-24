@@ -16,6 +16,24 @@ I think you won't get much from this article if you can answer these questions w
 
 But you may still want to jump directly to [the examples](#examples). If you find any of them surprising, then maybe there's something useful for you here!
 
+# Contents
+
+- [What is a shell?](#what-is-a-shell)
+    - [Running programs](#running-programs)
+    - [The worst shell in the world](#the-worst-shell-in-the-world)
+    - [Finding programs](#finding-programs)
+    - [Parsing arguments](#parsing-arguments)
+    - [Globs](#globs)
+    - [Quotes](#quotes)
+    - [Environment variables](#environment-variables)
+    - [Built-in commands](#built-in-commands)
+- [Examples!](#examples)
+    - [Example 1: The `--` separator](#example-1-the-separator)
+    - [Example 2: Escaping quotes](#example-2-escaping-quotes)
+    - [Example 3: Conditions in bash programming](#example-3-conditions-in-bash-programming)
+- [Clarifications](#clarifications)
+- [Further reading](#further-reading)
+
 # What is a shell?
 
 My favorite definition comes from the classic [The UNIX Programming Environment](https://en.wikipedia.org/wiki/The_Unix_Programming_Environment):
@@ -254,7 +272,7 @@ Ok, now for the fun part. Let's use what we learned to explore some interesting 
 
 ## Example 1: The `--` separator
 
-Let's start with an easy one. Sometimes you include a command as part of the arguments to another command. For example, let's say you are working on a Rust command line program which accepts some flags. If you want to try it out and do this:
+Let's start with an easy one. Sometimes you include a command as part of the arguments to another command. For example, let's say you are working on a Rust command line program which accepts some flags. You add support for a new `--foo` flag and you want to try it out. If you do this:
 
 ```
 $ cargo run --foo
@@ -268,9 +286,9 @@ error: Found argument '--foo' which wasn't expected, or isn't valid in this cont
   If you tried to supply '--foo' as a value rather than a flag, use '-- --foo'
 ```
 
-If we do `cargo run -- --foo`, then things work. `--` here is a special argument that tells `cargo` to interpret everything after it as positional arguments, not as flags.
+If we do `cargo run -- --foo`, then things work. `--` here is a special argument that tells `cargo` to interpret everything after it as positional arguments, even if it starts with a `-`.
 
-What does the shell do with `--`? Hopefully the answer is obvious: nothing. This is not a metacharacter. Using `--` to separate arguments from flags is a convention used by many programs, the shell doesn't care about it.
+What does the shell do with `--`? Hopefully the answer is obvious: nothing. This is not a metacharacter. Using `--` to separate arguments from flags is just a convention used by many programs; the shell doesn't care about it.
 
 ## Example 2: Escaping quotes
 
