@@ -1,6 +1,8 @@
 # The URL the site will be built for
 base_url = "https://fvictorio.github.io/"
 
+title = "Whales are Fishes"
+
 # Whether to automatically compile all Sass files in the sass directory
 compile_sass = true
 
@@ -22,9 +24,6 @@ highlight_theme = "kronuz"
 [extra]
 # control dark mode: auto | dark | toggle
 mode = "toggle"
-
-# subtitle will show under the title in index page
-subtitle = "Writings and stuff"
 
 # if set true, will use external CDN resource to load font and js file
 useCDN = false
