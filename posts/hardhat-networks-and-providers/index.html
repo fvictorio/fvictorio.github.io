@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+
+    
+        <title>
+             Hardhat: networks and providers
+            
+        </title>
+
+        
+            <meta property="og:title" content="Hardhat: networks and providers" />
+        
+    
+
+    
+        
+    
+
+    
+        
+    
+
+    
+         <link rel="icon" type="image/png" href=&#x2F;icon&#x2F;favicon.png />
+    
+
+    
+
+    
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-7N26802D9C"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+
+            gtag('config', 'G-7N26802D9C');
+        </script>
+    
+
+    
+    
+        <script src=https://fvictorio.github.io/js/feather.min.js></script>
+    
+
+
+    
+        <link href=https://fvictorio.github.io/css/fonts.css rel="stylesheet" />
+    
+
+    <link rel="stylesheet" type="text/css" media="screen" href=https://fvictorio.github.io/css/main.css />
+
+    
+        <link
+            rel="stylesheet"
+            id="darkModeStyle"
+            type="text/css"
+            href=https://fvictorio.github.io/css/dark.css
+            
+            
+                disabled
+            
+        />
+    
+
+
+    
+
+
+</head>
+
+
+<body>
+    <div class="content">
+        <header>
+    <div class="main" id="main_title">
+        <a href=https:&#x2F;&#x2F;fvictorio.github.io&#x2F;>Whales are Fishes</a>
+    </div>
+
+    <nav>
+        
+            <a href=&#x2F;>Home</a>
+        
+            <a href=&#x2F;posts>All posts</a>
+        
+            <a href=&#x2F;about>About</a>
+        
+
+        
+
+        
+            | <a id="dark-mode-toggle" onclick="toggleTheme()" href=""></a>
+            <script src=https://fvictorio.github.io/js/themetoggle.js></script>
+        
+    </nav>
+</header>
+
+
+        
+    
+<main>
+    <article>
+        <div class="title">
+            <h1 class="title">Hardhat: networks and providers</h1>
+            <div class="meta">
+                
+                
+                    on  2022-11-11
+                
+
+                
+            </div>
+        </div>
+
+        
+
+        <section class="body">
+            <p><em>Originally published at <a href="https://hackmd.io/@fvictorio/hardhat-networks-and-providers">HackMD</a>.</em></p>
+<p>An Ethereum node can be used to read the state of the blockchain or to send transactions that modify that state. To let you do this, Ethereum clients implement a protocol called <a href="https://en.wikipedia.org/wiki/JSON-RPC">JSON-RPC</a>. This allows applications to rely on a (somewhat) standardized set of methods that should work with any client.</p>
+<h2 id="sending-a-json-rpc-call">Sending a JSON-RPC call</h2>
+<p>We'll use <a href="https://www.alchemy.com/">Alchemy</a> in these examples and, if you want to reproduce them, you'll need to get an API key from them. Even better, if you have a locally synced node, you can configure it to expose the JSON-RPC interface and use that instead.</p>
+<p>Let's say we want to get the latest block number of the Goerli network. To do that, we have to use the <code>eth_blockNumber</code> JSON-RPC method, which returns the current block number. We can send this method via curl, or any other HTTP client:</p>
+<pre style="background-color:#383838;color:#e6e1dc;"><code><span>$ curl -X POST -H &#39;Content-Type: application/json&#39; \
+</span><span>--data &#39;{&quot;jsonrpc&quot;:&quot;2.0&quot;, &quot;id&quot;: &quot;1&quot;, &quot;method&quot;:&quot;eth_blockNumber&quot;, &quot;params&quot;:[]}&#39; \
+</span><span>https://eth-goerli.alchemyapi.io/v2/&lt;API_KEY&gt;
+</span><span>
+</span><span>{&quot;jsonrpc&quot;: &quot;2.0&quot;, &quot;id&quot;: &quot;1&quot;, &quot;result&quot;: &quot;0x8a73e2&quot;}
+</span></code></pre>
+<p>This is a mouthful, but there are only a few crucial parts; the rest is just boilerplate:</p>
+<ul>
+<li>We are sending an HTTP POST request to the Alchemy endpoint.</li>
+<li>The body of the request is a JSON object. This object includes the name of the method we are calling, <code>eth_blockNumber</code>. It also has a list of params, which is empty in this case.</li>
+<li>We receive a JSON object as the response, which includes a <code>result</code> field with the value we are interested in: the current block number, as a hexadecimal string.</li>
+</ul>
+<p>Other actions use other JSON-RPC methods. To send a signed transaction you use <code>eth_sendRawTransaction</code>, to get a transaction receipt you use <code>eth_getTransactionReceipt</code>, and so on.</p>
+<p>All of this is meant to illustrate what happens under the hood each time you interact with a node. But we don't want to do something like that for everything.</p>
+<h2 id="json-rpc-networks-in-hardhat">JSON-RPC networks in Hardhat</h2>
+<p>You can interact with nodes via JSON-RPC more easily using <a href="https://hardhat.org/">Hardhat</a>. We'll see how to configure a network and then send calls to it.</p>
+<p>Before starting, go to an empty directory and install Hardhat:</p>
+<pre style="background-color:#383838;color:#e6e1dc;"><code><span>$ cd /path/to/some/empty/directory
+</span><span>$ npm install --save-dev hardhat
+</span></code></pre>
+<p>Now create a <code>hardhat.config.js</code> file with this content:</p>
+<pre data-lang="js" style="background-color:#383838;color:#e6e1dc;" class="language-js "><code class="language-js" data-lang="js"><span style="font-style:italic;color:#6e9cbe;">module</span><span>.</span><span style="font-style:italic;color:#6e9cbe;">exports </span><span style="color:#cc7833;">= </span><span>{
+</span><span>  networks: {
+</span><span>    goerli: {
+</span><span>      url: </span><span style="color:#c1be91;">&quot;https://eth-goerli.alchemyapi.io/v2/&lt;API_KEY&gt;&quot;
+</span><span>    }
+</span><span>  }
+</span><span>}
+</span></code></pre>
+<p>This is adding a network to the Hardhat configuration. To configure a network you need at least two things: a name, which in this case is <code>goerli</code>, and a URL. We could've used a different name here, like <code>testnet</code>, if we wanted.</p>
+<p>After setting this up, you can start a console connected to this network by running <code>npx hardhat console --network goerli</code>, or <code>hh console --network goerli</code> if you have installed the <a href="https://hardhat.org/guides/shorthand.html">Hardhat shorthand</a>. A node.js REPL will be started, where you can send JSON-RPC calls more easily:</p>
+<pre style="background-color:#383838;color:#e6e1dc;"><code><span>&gt; await network.provider.send(&quot;eth_blockNumber&quot;, [])
+</span><span>&#39;0x8a733e&#39;
+</span></code></pre>
+<p>Here, <code>network.provider</code> is an object that implements the <a href="https://github.com/ethereum/EIPs/blob/master/EIPS/eip-1193.md">EIP-1193</a> standard. This is an abstraction with a minimal API used to interact with a node via JSON-RPC. When you use <code>window.ethereum</code> in a dapp, you are using an instance of a EIP-1193 provider exposed by the browser wallet.</p>
+<p>The only part we care about here is that this object has a <code>send</code> function that receives the name of the method and a list of arguments.</p>
+<p><em>Aside: the correct way to make calls in EIP-1193 is with the <code>request</code> method, but here we'll use the old <code>send</code> method because it's more concise.</em></p>
+<p>You can have more than one network in your configuration:</p>
+<pre data-lang="js" style="background-color:#383838;color:#e6e1dc;" class="language-js "><code class="language-js" data-lang="js"><span style="font-style:italic;color:#6e9cbe;">module</span><span>.</span><span style="font-style:italic;color:#6e9cbe;">exports </span><span style="color:#cc7833;">= </span><span>{
+</span><span>  networks: {
+</span><span>    mainnet: {
+</span><span>      url: </span><span style="color:#c1be91;">&quot;https://eth-mainnet.alchemyapi.io/v2/&lt;API_KEY&gt;&quot;
+</span><span>    },
+</span><span>    goerli: {
+</span><span>      url: </span><span style="color:#c1be91;">&quot;https://eth-goerli.alchemyapi.io/v2/&lt;API_KEY&gt;&quot;
+</span><span>    }
+</span><span>  }
+</span><span>}
+</span></code></pre>
+<p>But you can only connect to one of them at a time. If we exit the console and run <code>hh console --network mainnet</code>, we can make the same call as before but to the mainnet network instead:</p>
+<pre style="background-color:#383838;color:#e6e1dc;"><code><span>&gt; await network.provider.send(&quot;eth_blockNumber&quot;)
+</span><span>&#39;0xc607e5&#39;
+</span></code></pre>
+<h2 id="local-development-node">Local development node</h2>
+<p>Using a testnet for local development is slow, and you need to get test ether from a faucet. An easier and faster alternative is to use the local development node that comes with Hardhat. This node starts an instance of the Hardhat Network, which includes features like <code>console.log</code> and Solidity stack traces.</p>
+<p>If you run <code>hh node</code> in a terminal, an HTTP server with this development node will start listening for requests in <code>http://localhost:8545</code>:</p>
+<pre style="background-color:#383838;color:#e6e1dc;"><code><span>$ hh node
+</span><span>Started HTTP and WebSocket JSON-RPC server at http://127.0.0.1:8545/
+</span><span>
+</span><span>Accounts
+</span><span>========
+</span><span>Account #0: 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266 (10000 ETH)
+</span><span>Private Key: 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
+</span><span>
+</span><span>...
+</span></code></pre>
+<p>You can now connect to this network from another terminal running <code>hh console --network localhost</code> and make the same call as before:</p>
+<pre style="background-color:#383838;color:#e6e1dc;"><code><span>&gt; await network.provider.send(&quot;eth_blockNumber&quot;)
+</span><span>&#39;0x0&#39;
+</span></code></pre>
+<p>The response is <code>0x0</code> here because this is a new network that hasn't received any transactions.</p>
+<p>But wait, what is this <code>localhost</code> network? We haven't added it to our config. The reason we can use it is that Hardhat comes with this pre-defined network, and it's pretty much equivalent to adding this:</p>
+<pre style="background-color:#383838;color:#e6e1dc;"><code><span>localhost: {
+</span><span>  url: &quot;http://localhost:8545&quot;
+</span><span>}
+</span></code></pre>
+<p>Since connecting to this particular address and port is so common, Hardhat includes it by default. But you can explicitly add it to your config to customize it.</p>
+<p>So now we have an easy way to develop locally. For example, if we want to run our tests, we can start a node in one terminal and then run <code>hh test --network localhost</code> in another. But this is very cumbersome. It means working with two different terminals and killing and starting the node again and again every time we want to start from scratch.</p>
+<p>Luckily, you don't need to do that. Besides <code>localhost</code>, Hardhat comes with another pre-defined network: <code>hardhat</code>. This is the same network used by the development node, but instead of starting an HTTP server, it's an in-process network that is created when you run your task, and killed at the end of it. So if you run <code>hh test --network hardhat</code>, the result will be pretty much equivalent to the combination of starting a new node, running <code>hh test --network localhost</code>, and then killing the node, all in one command.</p>
+<p>Besides, this is the default network, so you only need to do <code>hh test</code>.</p>
+<h2 id="hardhat-network">Hardhat Network</h2>
+<p>This <code>hardhat</code> network is different from the other networks we have configured so far, because no HTTP server is started at all. Instead, the provider that will be exposed is connected to an in-process, ephemeral instance of the Hardhat Network. This might surprise you if you thought that you could only interact with JSON-RPC via HTTP, but the protocol is actually transport-agnostic.</p>
+<p>The <a href="https://hardhat.org/hardhat-network/reference/#config">configuration options for the Hardhat Network</a> are also different from the options for the <a href="https://hardhat.org/config/#json-rpc-based-networks">external networks</a>. For example, external networks have a <code>url</code> configuration field, but the Hardhat network configuration doesn't. On the other hand, the Hardhat network has a <code>blockGasLimit</code> option that doesn't exist for other networks.</p>
+<p>Keep in mind that the <code>hardhat</code> entry of your configuration is used to configure both the in-process network used by default, and the network started when you run <code>hh node</code>.</p>
+<h2 id="ethers-js">Ethers.js</h2>
+<p>Technically, you can do anything you want just with a JSON-RPC provider, but this is still a very low-level interface. Libraries like <a href="https://docs.ethers.io/v5/">ethers.js</a> offer a higher-level functionality to make your life easier.</p>
+<p>One of these interfaces is a set of <a href="https://docs.ethers.io/v5/single-page/#/v5/api/providers/">providers</a>. These are like the EIP-1193 provider we've been used so far, but with many helper methods. For example, we previously called the <code>eth_blockNumber</code> method and got a hexadecimal string in response. With an ethers provider, you would do this instead:</p>
+<pre style="background-color:#383838;color:#e6e1dc;"><code><span>&gt; await anEthersProvider.getBlockNumber()
+</span><span>9073582
+</span></code></pre>
+<p>There are two significant differences here: we use a specific and more readable method to get the current block number, and we get a number in response, not a hexadecimal string.</p>
+<p>How do we convert our provider into an ethers.js provider? The easiest way is to use ethers.js's <a href="https://docs.ethers.io/v5/single-page/#/v5/api/providers/other/-%23-Web3Provider"><code>Web3Provider</code></a> to wrap our existing provider. If you have ethers.js installed, you can start an <code>hh console</code> and execute this:</p>
+<pre style="background-color:#383838;color:#e6e1dc;"><code><span>&gt; const ethers = require(&quot;ethers&quot;)
+</span><span>undefined
+</span><span>
+</span><span>&gt; const anEthersProvider = new ethers.providers.Web3Provider(network.provider)
+</span><span>undefined
+</span><span>
+</span><span>&gt; await anEthersProvider.getBlockNumber()
+</span><span>9073591
+</span></code></pre>
+<p>Even easier, you can use the <a href="https://hardhat.org/plugins/nomiclabs-hardhat-ethers.html"><code>@nomiclabs/hardhat-ethers</code></a> plugin. This plugin will add an ethers property to the Hardhat runtime environment, which has all the functionality from the ethers package, but that also includes some extra things, like an already initialized provider. So if you install the plugin, import it in your config, and then start a Hardhat console again, you'll be able to do this:</p>
+<pre style="background-color:#383838;color:#e6e1dc;"><code><span>&gt; await ethers.provider.getBlockNumber()
+</span><span>9073599
+</span></code></pre>
+<h2 id="learn-more">Learn more</h2>
+<ul>
+<li>If you want to know more about the JSON-RPC interface of Ethereum nodes, you can check <a href="https://ethereum.org/en/developers/docs/apis/json-rpc/">the ethereum.org page</a>. There is work in progress to have an up to date specification in the <a href="https://github.com/ethereum/eth1.0-apis">eth1.0-apis</a> repository, which is used to generate <a href="https://playground.open-rpc.org/?schemaUrl=https://raw.githubusercontent.com/ethereum/eth1.0-apis/assembled-spec/openrpc.json&amp;uiSchema%5BappBar%5D%5Bui:splitView%5D=false&amp;uiSchema%5BappBar%5D%5Bui:input%5D=false&amp;uiSchema%5BappBar%5D%5Bui:examplesDropdown%5D=false">this site</a>. Finally, this information used to live in the <a href="https://eth.wiki/json-rpc/API">Ethereum Wiki</a> and, while this page isn't maintained anymore, it still has useful information.</li>
+<li>To learn more about the Hardhat Network, check <a href="https://hardhat.org/hardhat-network/">its docs</a>.</li>
+</ul>
+
+        </section>
+
+        
+
+    </article>
+</main>
+
+
+
+        <footer>
+  <div style="display:flex">
+    
+        <a class="soc" href=https:&#x2F;&#x2F;github.com&#x2F;fvictorio title=GitHub>
+            <i data-feather=github></i>
+        </a>
+    
+        <a class="soc" href=https:&#x2F;&#x2F;twitter.com&#x2F;fvictorio_nan title=Twitter>
+            <i data-feather=twitter></i>
+        </a>
+    
+        <a class="soc" href=https:&#x2F;&#x2F;goodreads.com&#x2F;fvictorio title=Goodreads>
+            <i data-feather=book></i>
+        </a>
+    
+        <a class="soc" href=mailto:victorio.franco@gmail.com title=Email>
+            <i data-feather=mail></i>
+        </a>
+    
+  </div>
+  <div class="footer-info">
+    2024 © Franco Victorio | <a
+      href="https://github.com/XXXMrG/archie-zola">Archie-Zola Theme</a>
+  </div>
+</footer>
+
+
+<script>
+    feather.replace();
+</script>
+
+
+    </div>
+</body>
+
+</html>

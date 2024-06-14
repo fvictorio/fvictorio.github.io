@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    <url>
+        <loc>https://fvictorio.github.io/</loc>
+    </url>
+    <url>
+        <loc>https://fvictorio.github.io/about/</loc>
+    </url>
+    <url>
+        <loc>https://fvictorio.github.io/page/1/</loc>
+    </url>
+    <url>
+        <loc>https://fvictorio.github.io/posts/</loc>
+    </url>
+    <url>
+        <loc>https://fvictorio.github.io/posts/hardhat-networks-and-providers/</loc>
+        <lastmod>2022-11-11</lastmod>
+    </url>
+    <url>
+        <loc>https://fvictorio.github.io/posts/understanding-gas-costs-after-berlin/</loc>
+        <lastmod>2021-04-11</lastmod>
+    </url>
+    <url>
+        <loc>https://fvictorio.github.io/posts/you-and-your-shell/</loc>
+        <lastmod>2023-09-24</lastmod>
+    </url>
+    <url>
+        <loc>https://fvictorio.github.io/tags/</loc>
+    </url>
+</urlset>
