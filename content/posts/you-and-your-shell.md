@@ -177,7 +177,7 @@ Here I'm going to quote from *The UNIX Programming Environment* again.
 
 Honestly, you should just close this tab and go read Chapter 3 from that book. It's so good.
 
-But yes: you use single or double quotes to escape metacharacters. Single quotes escape everything, double quotes allows certain expansions within them. I think a good thumb of rule is "always use single quotes unless you know what you're doing".
+But yes: you use single or double quotes to escape metacharacters. Single quotes escape everything, double quotes allows certain expansions within them. I think a good rule of thumb is "always use single quotes unless you know what you're doing".
 
 So, going back to the question in the previous section, if you want to literally pass `*.txt` as an argument to a program, you can do:
 
